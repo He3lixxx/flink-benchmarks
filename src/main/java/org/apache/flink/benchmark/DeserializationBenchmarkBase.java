@@ -28,7 +28,8 @@ import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Benchmark;
-import org.openjdk.jmh.annotations.OperationsPerInvocation;
+import org.openjdk.jmh.annotations.BenchmarkMode;
+import org.openjdk.jmh.annotations.Mode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,10 +37,10 @@ import java.util.List;
 
 @State(Scope.Thread)
 public abstract class DeserializationBenchmarkBase extends BenchmarkBase {
-    public static final int RECORDS_PER_INVOCATION = 1_000_000;
+    public static final int RECORDS_PER_INVOCATION = 10_000_000;
     public static final int TUPLE_BYTES = 2_000_000;
 
-    private SerializedTuplesRingSource source;
+    protected SerializedTuplesRingSource source;
 
     @Setup
     public void prepare() throws Exception {
@@ -66,8 +67,24 @@ public abstract class DeserializationBenchmarkBase extends BenchmarkBase {
     public abstract byte[] serializeNativeTuple(NativeTuple tup) throws Exception;
 
     @Benchmark
-    @OperationsPerInvocation(value = RECORDS_PER_INVOCATION)
-    public void bench(FlinkEnvironmentContext context) throws Exception {
+    @BenchmarkMode(Mode.AverageTime)
+    public void benchDeserialization(FlinkEnvironmentContext context) throws Exception {
+        executeBenchmark(context);
+    }
+
+
+    @Benchmark
+    @BenchmarkMode(Mode.AverageTime)
+    public void benchSetup(FlinkEnvironmentContext context) throws Exception {
+        long oldTargetCount = source.targetCount;
+        source.targetCount = 0;
+
+        executeBenchmark(context);
+
+        source.targetCount = oldTargetCount;
+    }
+
+    private void executeBenchmark(FlinkEnvironmentContext context) throws Exception {
         StreamExecutionEnvironment env = context.env;
         env.setParallelism(1);
 
@@ -88,7 +105,6 @@ public abstract class DeserializationBenchmarkBase extends BenchmarkBase {
         // .sum(0)
         // .printToErr();
 
-        // System.err.println("One execution done");
         env.execute();
     }
 

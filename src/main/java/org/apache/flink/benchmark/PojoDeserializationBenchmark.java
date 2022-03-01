@@ -25,22 +25,23 @@ import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.core.memory.DataInputDeserializer;
 import org.apache.flink.core.memory.DataOutputSerializer;
 
-import org.apache.flink.formats.avro.typeutils.AvroSerializer;
+import org.apache.flink.api.java.typeutils.runtime.PojoSerializer;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
+import org.apache.flink.api.common.ExecutionConfig;
 
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Scope;
 
 
 @State(Scope.Thread)
-public class AvroDeserializationBenchmark extends DeserializationBenchmarkBase {
-
+public class PojoDeserializationBenchmark extends DeserializationBenchmarkBase {
     private final DataOutputSerializer dataOutput = new DataOutputSerializer(128);
-    private final AvroSerializer<NativeTuple> serializer = new AvroSerializer<NativeTuple>(NativeTuple.class);
+    private PojoSerializer<NativeTuple> serializer = (PojoSerializer<NativeTuple>) TypeInformation.of(NativeTuple.class).createSerializer(new ExecutionConfig());
 
-    private final AvroDeserializationMapper mapper = new AvroDeserializationMapper();
+    private final PojoDeserializationMapper mapper = new PojoDeserializationMapper();
 
-    static class AvroDeserializationMapper implements MapFunction<byte[], NativeTuple> {
-        private final AvroSerializer<NativeTuple> serializer = new AvroSerializer<NativeTuple>(NativeTuple.class);
+    static class PojoDeserializationMapper implements MapFunction<byte[], NativeTuple> {
+        public PojoSerializer<NativeTuple> serializer;
         private final DataInputDeserializer dataInput = new DataInputDeserializer();
 
         @Override
@@ -53,12 +54,14 @@ public class AvroDeserializationBenchmark extends DeserializationBenchmarkBase {
     @Override
     public byte[] serializeNativeTuple(NativeTuple tup) throws Exception {
         dataOutput.clear();
+        // TODO: Fix wrong execution config
         serializer.serialize(tup, dataOutput);
         return dataOutput.getCopyOfBuffer();
     }
 
     @Override
     public DataStream<NativeTuple> addDeserializationOperations(DataStream<byte[]> stream) {
+        mapper.serializer = (PojoSerializer<NativeTuple>) TypeInformation.of(NativeTuple.class).createSerializer(stream.getExecutionConfig());
         return stream.map(mapper);
     }
 }

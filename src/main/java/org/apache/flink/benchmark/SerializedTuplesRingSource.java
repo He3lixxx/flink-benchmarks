@@ -32,7 +32,7 @@ public class SerializedTuplesRingSource implements SourceFunction<byte[]> {
     List<Byte> bytes;
     List<Integer> sizes;
 
-    long targetCount;
+    public long targetCount;
 
     public SerializedTuplesRingSource(List<Byte> bytes, List<Integer> sizes, long targetCount) {
         this.bytes = bytes;

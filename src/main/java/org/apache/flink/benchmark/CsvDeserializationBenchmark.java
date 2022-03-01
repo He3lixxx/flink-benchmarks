@@ -24,10 +24,6 @@ import org.apache.flink.api.common.functions.MapFunction;
 
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.runner.options.Options;
-import org.openjdk.jmh.runner.options.OptionsBuilder;
-import org.openjdk.jmh.runner.Runner;
-import org.openjdk.jmh.runner.RunnerException;
 
 import java.nio.charset.StandardCharsets;
 
@@ -63,14 +59,5 @@ public class CsvDeserializationBenchmark extends DeserializationBenchmarkBase {
                 return tup;
             }
         });
-    }
-
-    public static void main(String[] args) throws RunnerException {
-        Options options = new OptionsBuilder()
-                        .include(CsvDeserializationBenchmark.class.getSimpleName())
-                        .forks(1)
-                        .build();
-
-        new Runner(options).run();
     }
 }
