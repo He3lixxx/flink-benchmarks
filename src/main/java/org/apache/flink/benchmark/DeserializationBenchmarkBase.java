@@ -42,7 +42,7 @@ public abstract class DeserializationBenchmarkBase extends BenchmarkBase {
     private SerializedTuplesRingSource source;
 
     @Setup
-    public void prepare() {
+    public void prepare() throws Exception {
         ArrayList<Byte> serializedTuples = new ArrayList<Byte>(TUPLE_BYTES);
         ArrayList<Integer> serializedTupleSizes = new ArrayList<Integer>();
 
@@ -63,7 +63,7 @@ public abstract class DeserializationBenchmarkBase extends BenchmarkBase {
         source = new SerializedTuplesRingSource(serializedTuples, serializedTupleSizes, RECORDS_PER_INVOCATION);
     }
 
-    public abstract byte[] serializeNativeTuple(NativeTuple tup);
+    public abstract byte[] serializeNativeTuple(NativeTuple tup) throws Exception;
 
     @Benchmark
     @OperationsPerInvocation(value = RECORDS_PER_INVOCATION)
@@ -71,7 +71,7 @@ public abstract class DeserializationBenchmarkBase extends BenchmarkBase {
         StreamExecutionEnvironment env = context.env;
         env.setParallelism(1);
 
-        DataStream<List<Byte>> rawStream = env.addSource(source);
+        DataStream<byte[]> rawStream = env.addSource(source);
         DataStream<NativeTuple> tupleStream = addDeserializationOperations(rawStream);
 
         tupleStream
@@ -92,5 +92,5 @@ public abstract class DeserializationBenchmarkBase extends BenchmarkBase {
         env.execute();
     }
 
-    public abstract DataStream<NativeTuple> addDeserializationOperations(DataStream<List<Byte>> stream);
+    public abstract DataStream<NativeTuple> addDeserializationOperations(DataStream<byte[]> stream);
 }

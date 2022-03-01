@@ -23,7 +23,7 @@ import java.util.List;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 
 
-public class SerializedTuplesRingSource implements SourceFunction<List<Byte>> {
+public class SerializedTuplesRingSource implements SourceFunction<byte[]> {
     private volatile boolean running = true;
 
     private int byteOffset = 0;
@@ -41,14 +41,23 @@ public class SerializedTuplesRingSource implements SourceFunction<List<Byte>> {
     }
 
     @Override
-    public void run(SourceContext<List<Byte>> ctx) throws Exception {
+    public void run(SourceContext<byte[]> ctx) throws Exception {
         long counter = 0;
 
         running = true;
         while (running) {
             int currentSize = this.sizes.get(this.sizeOffset);
             int nextByteOffset = this.byteOffset + currentSize;
-            ctx.collect(this.bytes.subList(this.byteOffset, nextByteOffset));
+
+
+            // afaik, there is no way to take a view on a byte[]. Thus, the Base uses arraylist, which can give
+            // views as List<T>, but then we have to make a copy here.
+            byte[] bytesArray = new byte[currentSize];
+            int i = 0;
+            for(Byte b : bytes.subList(this.byteOffset, nextByteOffset)) {
+                bytesArray[i++] = b;
+            }
+            ctx.collect(bytesArray);
 
             counter++;
             this.sizeOffset++;

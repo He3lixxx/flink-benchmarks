@@ -44,10 +44,10 @@ public class NullDeserializationBenchmark extends DeserializationBenchmarkBase {
     }
 
     @Override
-    public DataStream<NativeTuple> addDeserializationOperations(DataStream<List<Byte>> stream) {
-        return stream.map(new MapFunction<List<Byte>, NativeTuple>() {
+    public DataStream<NativeTuple> addDeserializationOperations(DataStream<byte[]> stream) {
+        return stream.map(new MapFunction<byte[], NativeTuple>() {
             @Override
-            public NativeTuple map(List<Byte> bytes) {
+            public NativeTuple map(byte[] bytes) {
                 return tup;
             }
         });
