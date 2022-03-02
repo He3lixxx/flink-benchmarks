@@ -85,6 +85,8 @@ public abstract class DeserializationBenchmarkBase extends BenchmarkBase {
     }
 
     private void executeBenchmark(FlinkEnvironmentContext context) throws Exception {
+        // similar to what flink does in their own benchmarks, see
+        // https://github.com/apache/flink-benchmarks/blob/ffcdbb45c88e9453bd815229eebaec1e776722cb/src/main/java/org/apache/flink/benchmark/SerializationFrameworkMiniBenchmarks.java#L129
         StreamExecutionEnvironment env = context.env;
         env.setParallelism(1);
 
