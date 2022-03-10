@@ -94,12 +94,12 @@ public abstract class DeserializationBenchmarkBase extends BenchmarkBase {
         DataStream<NativeTuple> tupleStream = addDeserializationOperations(rawStream);
 
         tupleStream
-        .map(new MapFunction<NativeTuple, Integer>() {
-            @Override
-            public Integer map(NativeTuple tup) throws Exception {
-                return tup.readAccess();
-            }
-        })
+        // .map(new MapFunction<NativeTuple, Integer>() {
+        //     @Override
+        //     public Integer map(NativeTuple tup) throws Exception {
+        //         return tup.readAccess();
+        //     }
+        // })
         .addSink(new DiscardingSink<>());
         // The DataStream API can not give us a sum of all numbers on a stream without keying and windowing. Well, then we have to do it.
         // .keyBy(value -> 0)
